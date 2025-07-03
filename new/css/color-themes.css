@@ -1,0 +1,55 @@
+/* カラーテーマ管理ファイル */
+
+/* カラー定義（一箇所で管理） */
+:root {
+  /* ソフトバンクカラー */
+  --softbank-primary: #027Bfc;
+  --softbank-secondary: #027Bfc;
+  
+  /* auカラー */
+  --au-primary: #eb5505;
+  --au-secondary: #eb5505;
+  
+  /* デフォルト（ソフトバンク） */
+  --primary-color: var(--softbank-primary);
+  --primary-gradient: linear-gradient(135deg, var(--softbank-primary) 0%, var(--softbank-secondary) 100%);
+  --primary-hover: linear-gradient(135deg, var(--softbank-secondary) 0%, var(--softbank-primary) 100%);
+  --accent-color: var(--softbank-primary);
+  --accent-hover: var(--softbank-secondary);
+}
+
+/* ソフトバンクカラーテーマ */
+body.carrier-softbank {
+  --primary-color: var(--softbank-primary);
+  --primary-gradient: linear-gradient(135deg, var(--softbank-primary) 0%, var(--softbank-secondary) 100%);
+  --primary-hover: linear-gradient(135deg, var(--softbank-secondary) 0%, var(--softbank-primary) 100%);
+  --accent-color: var(--softbank-primary);
+  --accent-hover: var(--softbank-secondary);
+}
+
+/* auカラーテーマ */
+body.carrier-au {
+  --primary-color: var(--au-primary);
+  --primary-gradient: linear-gradient(135deg, var(--au-primary) 0%, var(--au-secondary) 100%);
+  --primary-hover: linear-gradient(135deg, var(--au-secondary) 0%, var(--au-primary) 100%);
+  --accent-color: var(--au-primary);
+  --accent-hover: var(--au-secondary);
+}
+
+/* カラーテーマ変更時のヘルパー関数（JavaScriptから使用可能） */
+:root {
+  --theme-transition-duration: 0.3s;
+}
+
+/* カラーテーマ変更時のスムーズな遷移 */
+body {
+  transition: all var(--theme-transition-duration) ease;
+}
+
+/* カラーテーマ変更時のボタン遷移 */
+.menu-fixed-button,
+.back-button,
+.progress-fill,
+.menu-header {
+  transition: all var(--theme-transition-duration) ease;
+} 
