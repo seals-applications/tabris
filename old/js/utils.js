@@ -391,7 +391,6 @@ function createChoiceQuestion(title, choices, onSelect) {
   choices.forEach(choice => {
     const choiceElement = createFromTemplate('choice-question-template', { value: choice });
     const button = choiceElement.querySelector('.choice-button');
-    button.classList.add('survey-button');
     button.addEventListener('click', () => onSelect(choice));
     inputBox.appendChild(choiceElement);
   });
@@ -430,7 +429,6 @@ function createMultiChoiceQuestion(title, choices, onSelect) {
   choices.forEach(choice => {
     const choiceElement = createFromTemplate('multi-choice-template', { value: choice });
     const button = choiceElement.querySelector('.multi-choice-button');
-    button.classList.add('survey-button');
     
     button.addEventListener('click', () => {
       if (selectedValues.has(choice)) {
@@ -465,9 +463,273 @@ document.addEventListener('DOMContentLoaded', function() {
   loadCSS('css/components.css');
 });
 
+// 詳細情報入力モーダルを表示
+function showDetailedInfoInput() {
+  const modal = document.getElementById('detailedInfoModal');
+  const tableBody = document.getElementById('familyTableBody');
+  
+  // モーダルを表示
+  modal.style.display = 'block';
+  
+  // 保存されたデータを取得して表示
+  const familyData = JSON.parse(localStorage.getItem('familyDetailedInfo') || '[]');
+  
+  // テーブルをクリア（innerHTMLではなく、子要素を削除）
+  while (tableBody.firstChild) {
+    tableBody.removeChild(tableBody.firstChild);
+  }
+  
+  // 保存されたデータがある場合は表示
+  if (familyData.length > 0) {
+    familyData.forEach((member, index) => {
+      addTableRow(member, index);
+    });
+  } else {
+    // データがない場合は空の行を1つ追加
+    addTableRow();
+  }
+}
 
+// キャリア名を短く表示する関数
+function getShortCarrierName(carrier) {
+  const carrierMap = {
+    'ソフトバンク': 'SoftBank',
+    'ワイモバイル': 'Y!mobile',
+    'UQモバイル': 'UQmobile',
+    '楽天モバイル': 'Rakuten'
+  };
+  return carrierMap[carrier] || carrier;
+}
 
+// テーブルに行を追加
+function addTableRow(member = null, index = null) {
+  const tableBody = document.getElementById('familyTableBody');
+  const row = document.createElement('tr');
+  row.className = 'table-row';
+  row.draggable = true;
+  
+  // 家族構成のセル
+  const roleCell = document.createElement('td');
+  roleCell.textContent = member ? member.role : '';
+  
+  // キャリアのセル
+  const carrierCell = document.createElement('td');
+  carrierCell.textContent = member ? getShortCarrierName(member.carrier) : '';
+  
+  // 料金のセル
+  const priceCell = document.createElement('td');
+  priceCell.textContent = member ? member.price : '';
+  
+  // 年齢のセル
+  const ageCell = document.createElement('td');
+  ageCell.textContent = member ? member.age : '';
+  
+  // 名義人のセル
+  const accountHolderCell = document.createElement('td');
+  accountHolderCell.textContent = member ? member.accountHolder : '';
+  
+  // 操作ボタン
+  const actionCell = document.createElement('td');
+  actionCell.className = 'action-cell';
+  
+  // 編集ボタン
+  const editButton = document.createElement('button');
+  editButton.className = 'edit-button';
+  editButton.textContent = '編集';
+  editButton.onclick = function() {
+    const rowIndex = index !== null ? index : Array.from(tableBody.children).indexOf(row);
+    editMember(rowIndex);
+  };
+  
+  // ボタンをセルに追加
+  actionCell.appendChild(editButton);
+  
+  // セルを行に追加
+  row.appendChild(roleCell);
+  row.appendChild(carrierCell);
+  row.appendChild(priceCell);
+  row.appendChild(ageCell);
+  row.appendChild(accountHolderCell);
+  row.appendChild(actionCell);
+  
+  // 行をテーブルに追加
+  if (index !== null) {
+    tableBody.insertBefore(row, tableBody.children[index]);
+  } else {
+    tableBody.appendChild(row);
+  }
+  
+  // ドラッグ＆ドロップイベントの設定
+  row.addEventListener('dragstart', handleDragStart);
+  row.addEventListener('dragend', handleDragEnd);
+  row.addEventListener('dragover', handleDragOver);
+  row.addEventListener('drop', handleDrop);
+}
 
+// ドラッグ＆ドロップのイベントハンドラ
+function handleDragStart(e) {
+  this.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', '');
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  const draggingRow = document.querySelector('.dragging');
+  if (draggingRow && draggingRow !== this) {
+    const tableBody = document.getElementById('familyTableBody');
+    const rows = Array.from(tableBody.children);
+    const currentIndex = rows.indexOf(this);
+    const draggingIndex = rows.indexOf(draggingRow);
+    
+    if (draggingIndex < currentIndex) {
+      tableBody.insertBefore(draggingRow, this);
+    } else {
+      tableBody.insertBefore(draggingRow, this.nextSibling);
+    }
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  updateFamilyDataOrder();
+}
+
+// データの順序を更新する関数
+function updateFamilyDataOrder() {
+  const tableBody = document.getElementById('familyTableBody');
+  const rows = Array.from(tableBody.children);
+  const familyData = [];
+  
+  rows.forEach(row => {
+    const cells = row.cells;
+    familyData.push({
+      role: cells[0].textContent,
+      carrier: cells[1].textContent,
+      price: cells[2].textContent,
+      age: cells[3].textContent,
+      accountHolder: cells[4].textContent
+    });
+  });
+  
+  localStorage.setItem('familyDetailedInfo', JSON.stringify(familyData));
+}
+
+// 家族メンバーを編集
+function editMember(index) {
+  const editModal = document.getElementById('editMemberModal');
+  const editTitle = document.getElementById('editMemberTitle');
+  const familyData = JSON.parse(localStorage.getItem('familyDetailedInfo') || '[]');
+  
+  // 編集モードか新規追加モードかを設定
+  const isEdit = index < familyData.length;
+  editTitle.textContent = isEdit ? '家族メンバー情報の編集' : '新規家族メンバーの追加';
+  
+  // 編集モードの場合はデータを設定
+  if (isEdit) {
+    const member = familyData[index];
+    document.getElementById('editRole').value = member.role || '';
+    document.getElementById('editCarrier').value = member.carrier || '';
+    document.getElementById('editPrice').value = member.price || '';
+    document.getElementById('editAge').value = member.age || '';
+    document.getElementById('editAccountHolder').value = member.accountHolder || '';
+  } else {
+    // 新規追加の場合は空にする
+    document.getElementById('editRole').value = '';
+    document.getElementById('editCarrier').value = '';
+    document.getElementById('editPrice').value = '';
+    document.getElementById('editAge').value = '';
+    document.getElementById('editAccountHolder').value = '';
+  }
+  
+  // 編集モーダルを表示
+  editModal.style.display = 'block';
+  
+  // 編集モーダルのデータ属性にインデックスを保存
+  editModal.dataset.editIndex = index;
+}
+
+// 家族メンバーの編集を保存
+function saveMemberEdit() {
+  const editModal = document.getElementById('editMemberModal');
+  const index = parseInt(editModal.dataset.editIndex);
+  const familyData = JSON.parse(localStorage.getItem('familyDetailedInfo') || '[]');
+  
+  // 入力値を取得
+  const memberData = {
+    role: document.getElementById('editRole').value,
+    carrier: document.getElementById('editCarrier').value,
+    price: document.getElementById('editPrice').value,
+    age: document.getElementById('editAge').value,
+    accountHolder: document.getElementById('editAccountHolder').value
+  };
+  
+  // データを更新または追加
+  if (index < familyData.length) {
+    familyData[index] = memberData;
+  } else {
+    familyData.push(memberData);
+  }
+  
+  // データを保存
+  localStorage.setItem('familyDetailedInfo', JSON.stringify(familyData));
+  
+  // 編集モーダルを閉じる
+  closeEditModal();
+  
+  // テーブルを更新
+  showDetailedInfoInput();
+}
+
+// 家族メンバーを削除
+function deleteMember() {
+  const editModal = document.getElementById('editMemberModal');
+  const index = parseInt(editModal.dataset.editIndex);
+  const familyData = JSON.parse(localStorage.getItem('familyDetailedInfo') || '[]');
+  
+  if (confirm('この家族メンバーを削除してもよろしいですか？')) {
+    // データを削除
+    familyData.splice(index, 1);
+    
+    // データを保存
+    localStorage.setItem('familyDetailedInfo', JSON.stringify(familyData));
+    
+    // 編集モーダルを閉じる
+    closeEditModal();
+    
+    // テーブルを更新
+    showDetailedInfoInput();
+  }
+}
+
+// 編集モーダルを閉じる
+function closeEditModal() {
+  const editModal = document.getElementById('editMemberModal');
+  editModal.style.display = 'none';
+}
+
+// 家族メンバーを追加
+function addFamilyMember() {
+  const familyData = JSON.parse(localStorage.getItem('familyDetailedInfo') || '[]');
+  const tableBody = document.getElementById('familyTableBody');
+  
+  // 新しい行をテーブルに追加
+  addTableRow(null, familyData.length);
+  
+  // 編集モーダルを表示
+  editMember(familyData.length);
+}
+
+// 詳細情報モーダルを閉じる関数
+function closeDetailedInfoModal() {
+  const modal = document.getElementById('detailedInfoModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
 
 // 途中保存の状態を保存する関数
 function saveDraft(answers, currentStep) {

@@ -93,8 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (startScreen) {
     startScreen.style.display = 'block';
   }
-
-
 });
 
 // 履歴メニューの初期化
@@ -482,5 +480,3 @@ function resumeFromDraft() {
 document.addEventListener('DOMContentLoaded', () => {
   initializeHistory();
 });
-
-

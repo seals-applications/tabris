@@ -200,12 +200,6 @@ function startQuickDiagnosis() {
   // 現在のステップを1に設定
   setCurrentStep(1);
   
-  // 既存の進捗バーを削除
-  const existingProgress = document.querySelector('.progress-container');
-  if (existingProgress) {
-    existingProgress.remove();
-  }
-  
   // 進捗バーを表示
   const progressTemplate = document.getElementById('progress-template');
   const progressElement = progressTemplate.content.cloneNode(true);
@@ -245,12 +239,6 @@ function startDetailedDiagnosis() {
   
   // 現在のステップを1に設定
   setCurrentStep(1);
-  
-  // 既存の進捗バーを削除
-  const existingProgress = document.querySelector('.progress-container');
-  if (existingProgress) {
-    existingProgress.remove();
-  }
   
   // 進捗バーを表示
   const progressTemplate = document.getElementById('progress-template');
@@ -326,9 +314,6 @@ function updateProgressForStep(stepNumber) {
   const progressFill = document.querySelector('.progress-fill');
   if (progressFill) {
     progressFill.style.width = `${progress}%`;
-    console.log(`進捗バー更新: ${stepNumber}/${totalQuestions} (${progress}%)`);
-  } else {
-    console.warn('進捗バーの要素が見つかりません');
   }
   
   // 質問番号を更新
@@ -337,9 +322,6 @@ function updateProgressForStep(stepNumber) {
   if (currentStep && totalSteps) {
     currentStep.textContent = stepNumber;
     totalSteps.textContent = totalQuestions;
-    console.log(`質問番号更新: ${stepNumber}/${totalQuestions}`);
-  } else {
-    console.warn('質問番号の要素が見つかりません');
   }
 }
 
@@ -633,9 +615,7 @@ function displayResults(recommendedPlans, additionalInfo = []) {
   });
 
   document.getElementById('planRecommendation').innerHTML = planHtml;
-  
-  // 診断結果をSupabaseに保存
-  saveDiagnosisResult(recommendedPlans, additionalInfo);
+  saveToHistory();
   
   // 追加情報の表示
   if (additionalInfo.length > 0) {
@@ -742,65 +722,3 @@ function showResult() {
   // 結果を表示
   displayResult();
 }
-
-// 診断結果をSupabaseに保存する関数
-async function saveDiagnosisResult(recommendedPlans, additionalInfo = []) {
-  try {
-    const { carrier, wifi, price, members, dataUsage, satisfaction, callTime, location, apps, contract, payment } = answers;
-    
-    // 保存するデータを準備
-    const diagnosisData = {
-      diagnosis_type: diagnosisType,
-      carrier: carrier,
-      wifi: wifi,
-      price: price,
-      data_usage: dataUsage,
-      members: members,
-      satisfaction: satisfaction,
-      call_time: callTime,
-      location: location,
-      apps: apps,
-      contract: contract,
-      payment: payment,
-      recommended_plans: recommendedPlans,
-      cashback_amount: calculateCashbackAmount(carrier, price),
-      additional_info: additionalInfo || []
-    };
-
-    // Supabaseに保存
-    const savedResult = await saveDiagnosisHistory(diagnosisData);
-    
-    if (savedResult) {
-      console.log('診断結果が保存されました:', savedResult);
-      
-      // 家族メンバー情報がある場合は保存
-      if (window.familyMembers && window.familyMembers.length > 0) {
-        await saveFamilyMembers(savedResult.id, window.familyMembers);
-      }
-    } else {
-      console.warn('診断結果の保存に失敗しました');
-    }
-  } catch (error) {
-    console.error('診断結果の保存中にエラーが発生:', error);
-  }
-}
-
-// キャッシュバック金額を計算する関数
-function calculateCashbackAmount(carrier, currentPrice) {
-  // ソフトバンク・ワイモバイル以外でキャッシュバック対象
-  if (carrier === 'ソフトバンク' || carrier === 'ワイモバイル') {
-    return 0;
-  }
-  
-  // 料金に応じたキャッシュバック金額を計算
-  if (currentPrice >= 5000) {
-    return 5000;
-  } else if (currentPrice >= 3000) {
-    return 3000;
-  } else if (currentPrice >= 2000) {
-    return 2000;
-  } else {
-    return 1000;
-  }
-}
-
