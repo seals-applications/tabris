@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>診断履歴 - スマートフォン料金診断</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- テクノロジー装飾 -->
+  <div class="tech-decoration"></div>
+
+  <div class="container">
+    <!-- ヘッダー装飾 -->
+    <div class="header-decoration"></div>
+    
+    <div class="header">
+      <button onclick="window.location.href='index.html'" class="back-button">戻る</button>
+      <h1>診断履歴</h1>
+    </div>
+
+    <div class="history-tabs">
+      <button class="tab-button active" data-tab="all">すべて</button>
+      <button class="tab-button" data-tab="daily">日別</button>
+      <button class="tab-button" data-tab="monthly">月別</button>
+    </div>
+
+    <div id="historyList"></div>
+
+    <div class="draft-section" style="display: none;">
+      <h3>途中保存</h3>
+      <div id="draftContent"></div>
+    </div>
+
+    <div class="button-container">
+      <button id="clearHistoryButton" class="clear-history">履歴を削除</button>
+    </div>
+  </div>
+
+  <!-- 履歴編集モーダル -->
+  <div id="editHistoryModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>履歴の編集</h2>
+      <div class="edit-form">
+        <div class="form-group">
+          <label for="editCarrier">キャリア</label>
+          <select id="editCarrier">
+            <option value="ソフトバンク">ソフトバンク</option>
+            <option value="ワイモバイル">ワイモバイル</option>
+            <option value="au">au</option>
+            <option value="UQモバイル">UQモバイル</option>
+            <option value="docomo">docomo</option>
+            <option value="ahamo">ahamo</option>
+            <option value="楽天モバイル">楽天モバイル</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editPrice">料金</label>
+          <input type="number" id="editPrice" placeholder="料金を入力">
+        </div>
+        <div class="form-group">
+          <label for="editDataUsage">使用データ量</label>
+          <select id="editDataUsage">
+            <option value="0～1GB">0～1GB</option>
+            <option value="1～4GB">1～4GB</option>
+            <option value="4～10GB">4～10GB</option>
+            <option value="10～30GB">10～30GB</option>
+            <option value="30～50GB">30～50GB</option>
+            <option value="50GB以上">50GB以上</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editMembers">家族人数</label>
+          <input type="number" id="editMembers" min="1" max="10">
+        </div>
+      </div>
+      <div class="button-container">
+        <button id="saveEditButton" class="save-button">保存</button>
+        <button id="deleteEditButton" class="delete-button">削除</button>
+        <button id="closeEditButton" class="close-button">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/history.js"></script>
+</body>
+</html> 
