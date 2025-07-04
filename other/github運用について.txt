@@ -50,6 +50,9 @@ C:\Users\okate\OneDrive\ドキュメント\GitHub\tabris
 
 ④で変更内容が表示されればOK
 
+⑤変更内容をサーバーにアップする
+「git push origin main」
+
 
 ※③④に関しては、初めて実行する場合は事前にgitのインストールが必要。
 以下を実行すること。
