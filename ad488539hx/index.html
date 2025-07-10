@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>スマートフォン料金診断</title>
+  <link rel="stylesheet" href="css/color-themes.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- テクノロジー装飾 -->
+  <div class="tech-decoration"></div>
+
+  <!-- 進捗バーのテンプレート -->
+  <template id="progress-template">
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-text">質問 <span class="current-step">1</span>/<span class="total-steps">6</span></div>
+    </div>
+  </template>
+
+  <div class="container">
+    <!-- ヘッダー装飾 -->
+    <div class="header-decoration"></div>
+    
+    <!-- 履歴ボタン -->
+    <button id="historyButton" class="history-button">
+      <i class="fas fa-history"></i>
+    </button>
+    
+
+    
+    <!-- メニューボタン -->
+    <button id="menuButton" class="menu-fixed-button" onclick="toggleMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- メニューモーダル -->
+    <div id="menuModal" class="menu-modal" style="display: none;">
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>メニュー</h3>
+          <button onclick="closeMenu()" class="menu-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="menu-items">
+          <div class="menu-item user-info-item">
+            <i class="fas fa-user"></i>
+            <span id="menuUsername">ログイン中...</span>
+            <small id="menuSiteId">現場ID: 読み込み中...</small>
+          </div>
+          <div class="menu-item" onclick="showCarrierSelector()">
+            <i class="fas fa-mobile-alt"></i>
+            <span>キャリア選択</span>
+            <small id="currentCarrierDisplay">現在: ソフトバンク/Y!mobile</small>
+          </div>
+          <div class="menu-item" onclick="showAllUsersDiagnosesFromMenu()">
+            <i class="fas fa-users"></i>
+            <span>アンケート履歴</span>
+          </div>
+          <div class="menu-item" onclick="showSettings()">
+            <i class="fas fa-cog"></i>
+            <span>設定</span>
+          </div>
+          <div class="menu-item" onclick="showHelp()">
+            <i class="fas fa-question-circle"></i>
+            <span>ヘルプ</span>
+          </div>
+          <div class="menu-item" onclick="showLinks()">
+            <i class="fas fa-link"></i>
+            <span>リンク集</span>
+          </div>
+          <div class="menu-item" onclick="salesLogout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>ログアウト</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- リンク集モーダル -->
+    <div id="linksModal" class="menu-modal" style="display: none;">
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>リンク集</h3>
+          <button onclick="closeLinksModal()" class="menu-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="links-container">
+          <!-- エリアマップセクション -->
+          <div class="link-section">
+            <button class="link-dropdown-button" onclick="showAreaMapDropdown()">
+              <i class="fas fa-map-marked-alt"></i>
+              エリアマップ
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="areaMapDropdown" class="link-dropdown">
+              <div class="link-item" onclick="openLink('https://www.docomo.ne.jp/area/service_area/?icid=CRP_AREA_top01_to_CRP_AREA_service_area')">
+                <div class="link-info">
+                  <h4>docomoエリアマップ</h4>
+                  <p>docomoのサービスエリアを確認できます</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+              <div class="link-item" onclick="openLink('https://www.au.com/mobile/area/map/')">
+                <div class="link-info">
+                  <h4>auエリアマップ</h4>
+                  <p>auのサービスエリアを確認できます</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+              <div class="link-item" onclick="openLink('https://www.softbank.jp/mobile/network/area-map/')">
+                <div class="link-info">
+                  <h4>Softbankエリアマップ</h4>
+                  <p>Softbankのサービスエリアを確認できます</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- SIM動作確認セクション -->
+          <div class="link-section">
+            <button class="link-dropdown-button" onclick="showSimCheckDropdown()">
+              <i class="fas fa-sim-card"></i>
+              SIM動作確認
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="simCheckDropdown" class="link-dropdown">
+              <div class="link-item" onclick="openLink('https://www.softbank.jp/mobile/products/sim/usim-card-device/')">
+                <div class="link-info">
+                  <h4>SoftBank</h4>
+                  <p>SoftBankのSIM動作確認</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+              <div class="link-item" onclick="openLink('https://www.ymobile.jp/store/lineup/sim_devices/')">
+                <div class="link-info">
+                  <h4>Y!mobile</h4>
+                  <p>Y!mobileのSIM動作確認</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+              <div class="link-item" onclick="openLink('https://www.au.com/mobile/product/sim/devices/')">
+                <div class="link-info">
+                  <h4>au</h4>
+                  <p>auのSIM動作確認</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+              <div class="link-item" onclick="openLink('https://www.uqwimax.jp/mobile/products/sim/devices/')">
+                <div class="link-info">
+                  <h4>UQmobile</h4>
+                  <p>UQmobileのSIM動作確認</p>
+                </div>
+                <div class="link-icon">
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 文字サイズ選択モーダル -->
+    <div id="fontSizeModal" class="menu-modal" style="display: none;">
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>文字サイズ</h3>
+          <button onclick="closeFontSizeModal()" class="menu-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="font-size-options">
+          <div class="font-size-option" onclick="setFontSize('small')">
+            <div class="font-size-info">
+              <h4>小</h4>
+              <p>文字サイズを小さくします</p>
+            </div>
+            <div class="font-size-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+          <div class="font-size-option" onclick="setFontSize('medium')">
+            <div class="font-size-info">
+              <h4>中</h4>
+              <p>標準サイズです</p>
+            </div>
+            <div class="font-size-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+          <div class="font-size-option" onclick="setFontSize('large')">
+            <div class="font-size-info">
+              <h4>大</h4>
+              <p>文字サイズを大きくします</p>
+            </div>
+            <div class="font-size-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 設定モーダル -->
+    <div id="settingsModal" class="menu-modal" style="display: none;">
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>設定</h3>
+          <button onclick="closeSettingsModal()" class="menu-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="settings-options">
+          <div class="settings-section">
+            <h4>表示設定</h4>
+            <div class="settings-item" onclick="showFontSizeSelector()">
+              <div class="settings-info">
+                <i class="fas fa-text-height"></i>
+                <span>文字サイズ</span>
+              </div>
+              <div class="settings-value">
+                <span id="currentFontSize">中</span>
+                <i class="fas fa-chevron-right"></i>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    
+    <!-- キャリア選択モーダル -->
+    <div id="carrierModal" class="menu-modal" style="display: none;">
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>キャリア選択</h3>
+          <button onclick="closeCarrierModal()" class="menu-close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="carrier-options">
+          <div class="carrier-option" onclick="selectCarrier('softbank')">
+            <div class="carrier-info">
+              <h4>ソフトバンク/Y!mobile</h4>
+              <p>ソフトバンクとワイモバイル向けの質問内容</p>
+            </div>
+            <div class="carrier-check" id="softbank-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+          <div class="carrier-option" onclick="selectCarrier('au')">
+            <div class="carrier-info">
+              <h4>au/UQmobile</h4>
+              <p>auとUQmobile向けの質問内容</p>
+            </div>
+            <div class="carrier-check" id="au-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+          <div class="carrier-option" onclick="selectCarrier('docomo')">
+            <div class="carrier-info">
+              <h4>docomo</h4>
+              <p>docomo向けの質問内容</p>
+            </div>
+            <div class="carrier-check" id="docomo-check">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- スタート画面 -->
+    <div id="startScreen">
+      <h2>おすすめ！<br>スマホプラン診断📱</h2>
+      <p>お客様に最適なスマートフォンプランを見つけましょう！</p>
+      
+      <div class="diagnosis-buttons-container">
+        <div class="diagnosis-option">
+          <p class="diagnosis-description">簡単な質問で素早く診断</p>
+          <button onclick="startQuickDiagnosis()" class="diagnosis-button">1分診断</button>
+        </div>
+        <div class="diagnosis-option">
+          <p class="diagnosis-description">詳細な質問でより正確な診断</p>
+          <button onclick="startDetailedDiagnosis()" class="diagnosis-button">3分診断</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- エラーメッセージ -->
+    <div id="errorMsg" style="display: none;"></div>
+
+    <!-- 質問1: 現在のキャリア -->
+    <div id="step1" style="display: none;">
+      <h2>現在ご利用のキャリアを選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('carrier', 'ソフトバンク')">ソフトバンク</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'ワイモバイル')">ワイモバイル</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'au')">au</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'UQモバイル')">UQモバイル</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'docomo')">docomo</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'ahamo')">ahamo</button>
+        <button class="survey-button" onclick="setAnswer('carrier', '楽天モバイル')">楽天モバイル</button>
+        <button class="survey-button" onclick="setAnswer('carrier', 'その他')">その他</button>
+      </div>
+      <button class="back-button" onclick="goToTop()">戻る</button>
+    </div>
+
+    <!-- 質問2: ネット回線 -->
+    <div id="step2" style="display: none;">
+      <h2>ご自宅のインターネット回線を選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('wifi', 'ドコモ光')">ドコモ光</button>
+        <button class="survey-button" onclick="setAnswer('wifi', 'ビッグローブ光')">ビッグローブ光</button>
+        <button class="survey-button" onclick="setAnswer('wifi', 'ソフトバンク光')">ソフトバンク光</button>
+        <button class="survey-button" onclick="setAnswer('wifi', 'ケーブルTV')">ケーブルTV</button>
+        <button class="survey-button" onclick="setAnswer('wifi', 'その他')">その他</button>
+        <button class="survey-button" onclick="setAnswer('wifi', '使用していない')">使用していない</button>
+      </div>
+      <button class="back-button" onclick="goBack(1)">戻る</button>
+    </div>
+
+    <!-- 質問3: 現在の料金プラン -->
+    <div id="step3" style="display: none;">
+      <h2>現在の月額料金を選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('price', '1000')">1000円</button>
+        <button class="survey-button" onclick="setAnswer('price', '2000')">2000円</button>
+        <button class="survey-button" onclick="setAnswer('price', '3000')">3000円</button>
+        <button class="survey-button" onclick="setAnswer('price', '5000')">5000円</button>
+        <button class="survey-button" onclick="setAnswer('price', '7000')">7000円</button>
+        <button class="survey-button" onclick="setAnswer('price', '10000')">10000円</button>
+      </div>
+      <button class="back-button" onclick="goBack(2)">戻る</button>
+    </div>
+
+    <!-- 質問4: 使用データ量 -->
+    <div id="step4" style="display: none;">
+      <h2>毎月の使用データ量（ギガ数）を選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('dataUsage', '0～1GB')">0～1GB</button>
+        <button class="survey-button" onclick="setAnswer('dataUsage', '1～4GB')">1～4GB</button>
+        <button class="survey-button" onclick="setAnswer('dataUsage', '4～10GB')">4～10GB</button>
+        <button class="survey-button" onclick="setAnswer('dataUsage', '10～30GB')">10～30GB</button>
+        <button class="survey-button" onclick="setAnswer('dataUsage', '30～50GB')">30～50GB</button>
+        <button class="survey-button" onclick="setAnswer('dataUsage', '50GB以上')">50GB以上</button>
+      </div>
+      <button class="back-button" onclick="goBack(3)">戻る</button>
+    </div>
+
+    <!-- 質問5: 家族人数 -->
+    <div id="step5" style="display: none;">
+      <h2>ご家族の人数を選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('members', '1')">1人</button>
+        <button class="survey-button" onclick="setAnswer('members', '2')">2人</button>
+        <button class="survey-button" onclick="setAnswer('members', '3')">3人</button>
+        <button class="survey-button" onclick="setAnswer('members', '4')">4人</button>
+        <button class="survey-button" onclick="setAnswer('members', '5')">5人</button>
+        <button class="survey-button" onclick="setAnswer('members', '6')">6人以上</button>
+      </div>
+      <button class="back-button" onclick="goBack(4)">戻る</button>
+    </div>
+
+    <!-- 質問6: 満足度 -->
+    <div id="step6" style="display: none;">
+      <h2>現在のキャリア満足度を選択してください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setSatisfaction(this, 0)">0%</button>
+        <button class="survey-button" onclick="setSatisfaction(this, 30)">30%</button>
+        <button class="survey-button" onclick="setSatisfaction(this, 50)">50%</button>
+        <button class="survey-button" onclick="setSatisfaction(this, 70)">70%</button>
+        <button class="survey-button" onclick="setSatisfaction(this, 90)">90%</button>
+        <button class="survey-button" onclick="setSatisfaction(this, 100)">100%</button>
+      </div>
+      <div class="button-container">
+        <button class="cta-button" onclick="calculateResult()" style="display: none;">診断結果を見る</button>
+        <button class="next-button" onclick="nextStep()" style="display: none;">次へ</button>
+        <button class="back-button" onclick="goBack(5)">戻る</button>
+      </div>
+    </div>
+
+    <!-- 質問7: 通話時間（3分診断のみ） -->
+    <div id="step7" style="display: none;">
+      <h2>1日の平均通話時間を教えてください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('callTime', 'ほとんどなし')">ほとんどなし</button>
+        <button class="survey-button" onclick="setAnswer('callTime', '5分未満')">5分未満</button>
+        <button class="survey-button" onclick="setAnswer('callTime', '5～15分')">5～15分</button>
+        <button class="survey-button" onclick="setAnswer('callTime', '15～30分')">15～30分</button>
+        <button class="survey-button" onclick="setAnswer('callTime', '30分以上')">30分以上</button>
+      </div>
+      <button class="back-button" onclick="goBack(6)">戻る</button>
+    </div>
+
+    <!-- 質問8: 利用場所（3分診断のみ） -->
+    <div id="step8" style="display: none;">
+      <h2>主な利用場所を教えてください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('location', '自宅')">自宅</button>
+        <button class="survey-button" onclick="setAnswer('location', '会社・学校')">会社・学校</button>
+        <button class="survey-button" onclick="setAnswer('location', '外出先')">外出先</button>
+        <button class="survey-button" onclick="setAnswer('location', 'その他')">その他</button>
+      </div>
+      <button class="back-button" onclick="goBack(7)">戻る</button>
+    </div>
+
+    <!-- 質問9: よく使うアプリ（3分診断のみ） -->
+    <div id="step9" style="display: none;">
+      <h2>よく使うアプリを教えてください（複数選択可）</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="toggleApp(this, 'LINE')">LINE</button>
+        <button class="survey-button" onclick="toggleApp(this, 'Twitter')">Twitter</button>
+        <button class="survey-button" onclick="toggleApp(this, 'Instagram')">Instagram</button>
+        <button class="survey-button" onclick="toggleApp(this, 'Facebook')">Facebook</button>
+        <button class="survey-button" onclick="toggleApp(this, 'YouTube')">YouTube</button>
+        <button class="survey-button" onclick="toggleApp(this, 'TikTok')">TikTok</button>
+        <button class="survey-button" onclick="toggleApp(this, 'オンラインゲーム')">オンラインゲーム</button>
+        <button class="survey-button" onclick="toggleApp(this, '地図アプリ')">地図アプリ</button>
+        <button class="survey-button" onclick="toggleApp(this, '特になし')">特になし</button>
+      </div>
+      <button class="next-button" onclick="nextStep()">次へ</button>
+      <button class="back-button" onclick="goBack(8)">戻る</button>
+    </div>
+
+    <!-- 質問10: 契約期間（3分診断のみ） -->
+    <div id="step10" style="display: none;">
+      <h2>契約期間を教えてください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setAnswer('contract', '1年未満')">1年未満</button>
+        <button class="survey-button" onclick="setAnswer('contract', '1～2年')">1～2年</button>
+        <button class="survey-button" onclick="setAnswer('contract', '2～3年')">2～3年</button>
+        <button class="survey-button" onclick="setAnswer('contract', '3年以上')">3年以上</button>
+      </div>
+      <button class="back-button" onclick="goBack(9)">戻る</button>
+    </div>
+
+    <!-- 質問11: 端末の支払い方法（3分診断のみ） -->
+    <div id="step11" style="display: none;">
+      <h2>端末の支払い方法を教えてください</h2>
+      <div class="input-box">
+        <button class="survey-button" onclick="setPayment(this, '一括払い')">一括払い</button>
+        <button class="survey-button" onclick="setPayment(this, '分割払い')">分割払い</button>
+        <button class="survey-button" onclick="setPayment(this, '端末代なし')">端末代なし</button>
+      </div>
+      <button class="cta-button" onclick="calculateDetailedResult()">診断結果を見る</button>
+      <button class="back-button" onclick="goBack(10)">戻る</button>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result" style="display: none;">
+      <h2>診断結果</h2>
+      <p id="resultText"></p>
+      <p id="cashbackText"></p>
+      
+      <h3>回答内容</h3>
+      <div id="answerSummary">
+        <p id="carrierAnswer"></p>
+        <p id="wifiAnswer"></p>
+        <p id="priceAnswer"></p>
+        <p id="dataUsageAnswer"></p>
+        <p id="membersAnswer"></p>
+        <p id="satisfactionAnswer"></p>
+        <p id="callTimeAnswer"></p>
+        <p id="locationAnswer"></p>
+        <p id="appsAnswer"></p>
+        <p id="contractAnswer"></p>
+        <p id="paymentAnswer"></p>
+      </div>
+      
+      <h3>おすすめプラン</h3>
+      <div id="planRecommendation"></div>
+      
+      <button class="top-button" onclick="goToTop()">TOPに戻る</button>
+    </div>
+  </div>
+
+  <!-- 履歴モーダル -->
+  <div id="historyModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>診断履歴</h2>
+      <div class="history-tabs">
+        <button class="tab-button active" data-tab="all">すべて</button>
+        <button class="tab-button" data-tab="daily">日別</button>
+        <button class="tab-button" data-tab="monthly">月別</button>
+      </div>
+      <div id="historyList"></div>
+      <div class="draft-section" style="display: none;">
+        <h3>途中保存</h3>
+        <div id="draftContent"></div>
+      </div>
+      <div class="button-container">
+        <button id="clearHistoryButton" class="clear-history">履歴を削除</button>
+        <button id="closeHistoryButton" class="history-menu-button">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 履歴編集モーダル -->
+  <div id="editHistoryModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>履歴の編集</h2>
+      <div class="edit-form">
+        <div class="form-group">
+          <label for="editCarrier">キャリア</label>
+          <select id="editCarrier">
+            <option value="ソフトバンク">ソフトバンク</option>
+            <option value="ワイモバイル">ワイモバイル</option>
+            <option value="au">au</option>
+            <option value="UQモバイル">UQモバイル</option>
+            <option value="docomo">docomo</option>
+            <option value="ahamo">ahamo</option>
+            <option value="楽天モバイル">楽天モバイル</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editPrice">料金</label>
+          <input type="number" id="editPrice" placeholder="料金を入力">
+        </div>
+        <div class="form-group">
+          <label for="editDataUsage">使用データ量</label>
+          <select id="editDataUsage">
+            <option value="0～1GB">0～1GB</option>
+            <option value="1～4GB">1～4GB</option>
+            <option value="4～10GB">4～10GB</option>
+            <option value="10～30GB">10～30GB</option>
+            <option value="30～50GB">30～50GB</option>
+            <option value="50GB以上">50GB以上</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editMembers">家族人数</label>
+          <input type="number" id="editMembers" min="1" max="10">
+        </div>
+      </div>
+      <div class="button-container">
+        <button id="saveEditButton" class="save-button">保存</button>
+        <button id="deleteEditButton" class="delete-button">削除</button>
+        <button id="closeEditButton" class="close-button">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- テンプレート要素 -->
+  <template id="question-template">
+    <div class="question">
+      <h2 class="question-title"></h2>
+      <div class="input-box"></div>
+    </div>
+  </template>
+
+  <template id="choice-question-template">
+    <button class="choice-button survey-button"></button>
+  </template>
+
+  <template id="number-input-template">
+    <input type="number" class="number-field">
+    <button class="submit-button">次へ</button>
+  </template>
+
+  <template id="multi-choice-template">
+    <button class="multi-choice-button survey-button"></button>
+  </template>
+
+  <!-- 進捗バーのテンプレート -->
+  <template id="progress-template">
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-text">質問 <span class="current-step">1</span>/<span class="total-steps">6</span></div>
+    </div>
+  </template>
+
+  <!-- JavaScriptファイルの読み込み -->
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/sales-management.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/diagnosis.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/utils.js"></script>
+</body>
+</html>
